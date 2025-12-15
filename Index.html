@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPA Pro Plus</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCkdiXMMaw86bb4d7VhAOSfE2cUPDB-d5w",
+  authDomain: "gpapro-d99e9.firebaseapp.com",
+  projectId: "gpapro-d99e9",
+  storageBucket: "gpapro-d99e9.firebasestorage.app",
+  messagingSenderId: "81710259300",
+  appId: "1:81710259300:web:a52018fcbc57ccc8fe1371"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+
+// --- GLOBAL AUTH FUNCTIONS ---
+window.submitAuth = async function(signup=false){
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  if(!email || !password){ alert("Enter email & password"); return; }
+  try{
+    if(signup){
+      await createUserWithEmailAndPassword(auth,email,password);
+      alert("Signed up successfully!");
+    } else {
+      await signInWithEmailAndPassword(auth,email,password);
+      alert("Logged in successfully!");
+    }
+    document.getElementById('authCard').style.display='none';
+    document.getElementById('mainApp').style.display='block';
+  } catch(e){ alert(e.message); }
+}
+
+window.logout = function(){
+  signOut(auth).then(()=>{
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('authCard').style.display='block';
+  });
+}
+
+onAuthStateChanged(auth,user=>{
+  if(user){
+    document.getElementById('authCard').style.display='none';
+    document.getElementById('mainApp').style.display='block';
+  } else {
+    document.getElementById('authCard').style.display='block';
+    document.getElementById('mainApp').style.display='none';
+  }
+});
+</script>
+
+<style>
+:root {
+  --primary:#2563eb;
+  --secondary:#4ade80;
+  --accent:#facc15;
+  --bg:#f0f2f5;
+  --card:#fff;
+  --text:#0f172a;
+  --shadow:rgba(0,0,0,.1);
+}
+[data-theme='dark'] {
+  --bg:#1f2937;
+  --card:#374151;
+  --text:#f3f4f6;
+  --primary:#3b82f6;
+  --secondary:#22c55e;
+  --accent:#fbbf24;
+  --shadow:rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;}
+body{margin:0;background:var(--bg);color:var(--text);transition:0.3s;}
+button{cursor:pointer;}
+
+/* --- AUTH CARD --- */
+#authCard{
+  max-width:400px;
+  margin:100px auto;
+  padding:2rem;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 10px 20px rgba(0,0,0,.2);
+}
+#authCard h2{text-align:center;margin-bottom:1rem;}
+#authCard input{
+  width:100%;
+  margin-bottom:1rem;
+  padding:0.8rem 1rem;
+  font-size:1rem;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+  box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+.auth-buttons{display:flex;gap:1rem;margin-top:0.5rem;}
+.auth-buttons button{
+  flex:1;
+  padding:0.9rem;
+  border-radius:12px;
+  font-size:1rem;
+  font-weight:bold;
+  border:none;
+  color:#fff;
+  background:var(--primary);
+  box-shadow:0 4px 6px rgba(0,0,0,0.1);
+  transition:0.3s;
+}
+.auth-buttons button:hover{transform:translateY(-2px);}
+
+/* Password eye */
+.password-container{position:relative;}
+.password-container span{
+  position:absolute;
+  right:1rem;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  font-weight:bold;
+}
+/* Nav bar buttons compact and nicely spaced */
+.nav-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-right: 1rem;
+}
+.nav-actions button {
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 3px 5px var(--shadow);
+  transition: all 0.3s ease;
+}
+.nav-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 6px var(--shadow);
+}
+/* --- HEADER --- */
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:.5rem 1rem;
+  background:var(--primary);
+  color:#fff;
+  border-bottom-left-radius:12px;
+  border-bottom-right-radius:12px;
+  box-shadow:0 4px 8px var(--shadow);
+  flex-wrap:wrap;
+}
+.profile-container{display:flex;align-items:center;gap:.5rem;}
+.profile-dropdown{display:flex;align-items:center;gap:.5rem;cursor:pointer;}
+.profile-dropdown img{width:60px;height:60px;border-radius:50%;border:2px solid var(--accent);}
+.nav-title{font-weight:bold;font-size:1.1rem;}
+.nav-actions{display:flex;align-items:center;gap:0.5rem;}
+.scale-btn{padding:.3rem .8rem;border-radius:20px;border:1px solid rgba(255,255,255,.5);font-weight:bold;transition:.3s;}
+.scale-btn.active{background:#fff;color:var(--primary);}
+.toggle-container{margin-left:auto;}
+.toggle-btn{width:50px;height:50px;border-radius:50%;border:none;background:var(--accent);display:flex;align-items:center;justify-content:center;}
+.half-moon{width:18px;height:18px;border-radius:50%;background:#fff;clip-path:polygon(50% 0%,100% 0%,100% 100%,50% 100%);}
+
+/* --- MAIN --- */
+main{max-width:480px;margin:auto;padding:1rem;}
+.card{background:var(--card);border-radius:16px;padding:1.5rem;box-shadow:0 10px 25px var(--shadow);margin-bottom:1rem;transition:.3s;}
+.profile-header{text-align:center;margin-bottom:1rem;}
+.profile-header img{width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);margin:0 auto .5rem;}
+.profile-header h2{margin:0;font-size:1.5rem;font-weight:bold;color:var(--text);}
+.profile-body input{width:100%;margin-bottom:1rem;padding:.8rem 1rem;font-size:1rem;border-radius:12px;border:1px solid #cbd5e1;}
+.profile-actions{display:flex;gap:1rem;}
+.profile-actions button{flex:1;padding:.9rem;font-size:1rem;border-radius:12px;font-weight:bold;border:none;transition:0.3s;}
+.profile-actions .primary{background:var(--primary);color:#fff;}
+.profile-actions .secondary{background:var(--secondary);color:#fff;}
+
+/* Semester note */
+#semesterNote{
+  width:100%;
+  padding:.8rem 1rem;
+  border-radius:12px;
+  font-size:1rem;
+  margin-bottom:1rem;
+  border:1px solid #cbd5e1;
+  box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Course rows */
+.row{display:grid;grid-template-columns:2fr 50px 60px 50px;gap:.5rem;margin-bottom:.5rem;align-items:center;}
+.row input, .row select{padding:.7rem; border-radius:12px; font-size:1rem; border:1px solid #cbd5e1; width:100%;}
+.row input[type="number"]{text-align:center;}
+.row button{background:#ef4444;color:#fff;border:none;font-weight:bold;border-radius:12px;padding:.5rem;transition:0.3s;}
+.row button:hover{transform:translateY(-1px);}
+
+/* Semester buttons */
+.card > button.primary,
+.actions button{
+  width:100%;
+  padding:.9rem 1rem;
+  border-radius:12px;
+  font-size:1rem;
+  font-weight:bold;
+  border:none;
+  margin-top:0.5rem;
+  box-shadow:0 4px 6px rgba(0,0,0,0.1);
+}
+.actions{display:flex;flex-direction:column;gap:.5rem;}
+.actions .primary{background:var(--primary);color:#fff;}
+.actions .secondary{background:var(--secondary);color:#fff;}
+
+/* Result and achievements */
+.result{font-size:1.2rem;margin-top:1rem;font-weight:bold;color:var(--accent);}
+.achievement{display:inline-block;padding:.4rem .8rem;margin:.2rem;background:var(--secondary);color:#fff;border-radius:12px;font-size:.9rem;}
+#chartContainer{margin-top:1rem;}
+footer{text-align:center;font-size:.85rem;opacity:.7;margin-top:2rem;}
+
+@media(max-width:500px){
+  .row{grid-template-columns:1fr;}
+  .row input[type="number"],.row select,.row button{width:100%;}
+  .actions{flex-direction:column;}
+  header{flex-wrap:wrap;}
+  .nav-actions{width:100%;justify-content:flex-start;margin-top:.3rem;}
+}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- AUTH CARD -->
+<div id="authCard">
+  <h2>GPA Pro Plus</h2>
+  <input type="email" id="email" placeholder="Email">
+  <div class="password-container">
+    <input type="password" id="password" placeholder="Password">
+    <span onclick="togglePassword()">👁️</span>
+  </div>
+  <div class="auth-buttons">
+    <button onclick="submitAuth(true)">Sign Up</button>
+    <button onclick="submitAuth(false)">Login</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none;">
+<header>
+  <div class="profile-container">
+    <div class="profile-dropdown" onclick="toggleProfileOptions()">
+      <img src="https://i.pravatar.cc/60" id="avatar">
+      <span id="usernameNav">Guest</span>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <button class="scale-btn active" id="scale5" onclick="setScale(5)">5.0</button>
+    <button class="scale-btn" id="scale4" onclick="setScale(4)">4.0</button>
+    <button class="primary" onclick="exportData()">Export</button>
+    <button class="primary" onclick="shareData()">Share</button>
+    <button class="secondary" onclick="logout()">Logout</button>
+  </div>
+  <div class="toggle-container">
+    <button class="toggle-btn" onclick="toggleTheme()"><span class="half-moon"></span></button>
+  </div>
+</header>
+
+<main>
+  <!-- PREMIUM BOX -->
+  <div class="card" style="background:var(--accent);color:#000;">
+    <h3>Premium Feature</h3>
+    <p>Unlock full features like Export & Share by upgrading to Premium!</p>
+    <button class="primary" onclick="alert('Premium upgrade coming soon!')">Go Premium</button>
+  </div>
+
+  <!-- ADVERT BOX -->
+  <div class="card" style="background:#fff; border:2px dashed #cbd5e1; color:#0f172a;">
+    <h3>Advertisement</h3>
+    <p>Your Ad Here</p>
+  </div>
+
+  <!-- Profile Card -->
+  <div class="card profile">
+    <div class="profile-header">
+      <img src="https://i.pravatar.cc/100" id="avatarProfile">
+      <h2>GPA Pro Plus</h2>
+    </div>
+    <div class="profile-body">
+      <input type="text" id="username" placeholder="Enter your name" />
+      <div class="profile-actions">
+        <button class="secondary" onclick="saveProfile()">Save Profile</button>
+        <button class="primary" onclick="changeAvatar()">Change Avatar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Semester Card -->
+  <div class="card">
+    <h3>Current Semester</h3>
+    <input type="text" id="semesterNote" placeholder="Semester note (optional)">
+    <div id="courses"></div>
+    <button class="primary" onclick="addCourse()">➕ Add Course</button>
+    <div class="actions">
+      <button class="primary" onclick="calculateGPA()">Calculate GPA</button>
+      <button class="secondary" onclick="saveSemester()">Save Semester</button>
+      <button class="secondary" onclick="resetAll()">Reset</button>
+    </div>
+    <div class="result" id="result"></div>
+    <div id="achievements"></div>
+    <hr style="margin:1rem 0" />
+    <h3>Saved Semesters</h3>
+    <div id="history"></div>
+    <div class="result" id="cgpa"></div>
+    <div id="chartContainer"><canvas id="gpaChart"></canvas></div>
+  </div>
+
+  <footer>© 2025 GPA Pro Plus by Abraham Edidiong. All rights reserved.</footer>
+</main>
+</div>
+
+<script>
+// --- PASSWORD SHOW/HIDE ---
+function togglePassword(){
+  const p = document.getElementById('password');
+  if(p.type === 'password'){ p.type='text'; } else { p.type='password'; }
+}
+
+// --- PROFILE ---
+const usernameInput=document.getElementById('username');
+const usernameNav=document.getElementById('usernameNav');
+const avatar=document.getElementById('avatar');
+function saveProfile(){ const name=usernameInput.value.trim(); if(name){ localStorage.setItem('username',name); usernameNav.textContent=name; } alert('Profile saved!'); }
+function loadProfile(){ const name=localStorage.getItem('username')||'Guest'; usernameInput.value=name; usernameNav.textContent=name; }
+function changeAvatar(){ const newUrl=prompt('Enter avatar image URL:'); if(newUrl){ avatar.src=newUrl; localStorage.setItem('avatar',newUrl);} }
+function loadAvatar(){ const saved=localStorage.getItem('avatar'); if(saved) avatar.src=saved; }
+function toggleProfileOptions(){ alert('Profile options clicked'); }
+
+// --- THEME ---
+let currentTheme='light';
+function toggleTheme(){ currentTheme=currentTheme==='light'?'dark':'light'; document.body.setAttribute('data-theme',currentTheme); }
+
+// --- SCALE ---
+const gradePoints5={A:5,B:4,C:3,D:2,E:1,F:0};
+const gradePoints4={A:4,B:3,C:2,D:1,E:0,F:0};
+let gradePoints=gradePoints5;
+function setScale(scale){ gradePoints = scale===5 ? gradePoints5 : gradePoints4; document.getElementById('scale5').classList.toggle('active', scale===5); document.getElementById('scale4').classList.toggle('active', scale===4); localStorage.setItem('gradingSystem', scale); loadHistory(); }
+
+// --- COURSES ---
+const coursesDiv=document.getElementById('courses');
+function addCourse(){
+  const row=document.createElement('div');
+  row.className='row';
+  row.innerHTML=`<input placeholder="Course name" /><input type="number" min="1" placeholder="Unit" value="3" /><select><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select><button onclick="this.parentElement.remove()">✖</button>`;
+  coursesDiv.appendChild(row);
+}
+
+// --- GPA ---
+const result=document.getElementById('result');
+const achievementsDiv=document.getElementById('achievements');
+function calculateGPA(){
+  let totalPoints=0,totalUnits=0;
+  document.querySelectorAll('.row').forEach(row=>{
+    const unit=parseInt(row.children[1].value);
+    const grade=row.children[2].value;
+    if(!unit||unit<=0) return;
+    totalUnits+=unit;
+    totalPoints+=unit*gradePoints[grade];
+  });
+  if(totalUnits===0){ result.textContent='Add at least one course.'; return null; }
+  const gpa=(totalPoints/totalUnits).toFixed(2);
+  result.textContent=`Semester GPA: ${gpa}`;
+  checkAchievements(parseFloat(gpa));
+  sendPushNotification(parseFloat(gpa));
+  return {gpa:parseFloat(gpa),units:totalUnits,note:document.getElementById('semesterNote').value};
+}
+function checkAchievements(gpa){ achievementsDiv.innerHTML=''; if(gpa>=4.5){ achievementsDiv.innerHTML='<span class="achievement">Excellent GPA!</span>'; } else if(gpa>=3.5){ achievementsDiv.innerHTML='<span class="achievement">Good GPA!</span>'; } }
+
+// --- SEMESTERS ---
+const historyDiv=document.getElementById('history');
+const cgpaDiv=document.getElementById('cgpa');
+// --- SEMESTERS CONTINUED ---
+function saveSemester(){
+  const data=calculateGPA(); 
+  if(!data) return;
+  const semesters=JSON.parse(localStorage.getItem('semesters')||'[]');
+  semesters.push(data);
+  localStorage.setItem('semesters',JSON.stringify(semesters));
+  resetAll(); 
+  loadHistory();
+}
+
+function loadHistory(){
+  const semesters=JSON.parse(localStorage.getItem('semesters')||'[]');
+  historyDiv.innerHTML='';
+  let totalPoints=0,totalUnits=0;
+  semesters.forEach((s,i)=>{
+    const p=document.createElement('p');
+    p.textContent=`Semester ${i+1}: GPA ${s.gpa}` + (s.note?` (${s.note})`:'');
+    historyDiv.appendChild(p);
+    totalPoints+=s.gpa*s.units;
+    totalUnits+=s.units;
+  });
+  if(totalUnits>0) cgpaDiv.textContent=`CGPA: ${(totalPoints/totalUnits).toFixed(2)}`;
+  updateChart(semesters);
+}
+
+function resetAll(){
+  coursesDiv.innerHTML='';
+  result.textContent='';
+  document.getElementById('semesterNote').value='';
+  addCourse();
+}
+
+// --- CHART ---
+let gpaChart;
+function updateChart(semesters){
+  const labels=semesters.map((s,i)=>`Sem ${i+1}`);
+  const data=semesters.map(s=>s.gpa);
+  const ctx=document.getElementById('gpaChart').getContext('2d');
+  if(gpaChart) gpaChart.destroy();
+  gpaChart=new Chart(ctx,{
+    type:'bar',
+    data:{ labels, datasets:[{ label:'GPA', data, backgroundColor:'var(--primary)' }] },
+    options:{ scales:{ y:{ beginAtZero:true, max:Math.max(...data,5) } } }
+  });
+}
+
+// --- NOTIFICATIONS ---
+function sendPushNotification(gpa){
+  if(!("Notification" in window)){ console.log("Notifications not supported."); return; }
+  function notify(){ new Notification("GPA Update",{body:`Your GPA is ${gpa}`,icon:"https://i.pravatar.cc/50"}); }
+  if(Notification.permission==="granted"){ notify(); }
+  else if(Notification.permission!=="denied"){
+    Notification.requestPermission().then(p=>{ if(p==="granted") notify(); });
+  }
+}
+
+// --- EXPORT & SHARE ---
+function exportData(){
+  const data=localStorage.getItem('semesters');
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='gpa_data.json';
+  a.click();
+}
+
+function shareData(){
+  if(navigator.share){
+    const data=JSON.stringify(JSON.parse(localStorage.getItem('semesters')||'[]'),null,2);
+    navigator.share({ title:'My GPA Data', text:data });
+  } else { alert('Share not supported'); }
+}
+
+// --- INIT ---
+loadProfile();
+loadAvatar();
+setScale(parseInt(localStorage.getItem('gradingSystem')||'5'));
+addCourse();
+loadHistory();
+</script>
+</body>
+</html>
